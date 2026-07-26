@@ -5,19 +5,19 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6d859bfd-ca6a-4c67-9912-147aa035e71e" >
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e9f89f91-7fb1-4b91-bff0-ac95ceb7280f" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<flow name="ch2-demo-apiFlow" doc:id="52123c94-2761-414d-acbc-0ff40a823cbb" >
-		<http:listener doc:name="Listener" doc:id="1d1decaf-12dc-4731-9df2-46a6d198f417" config-ref="HTTP_Listener_config" path="/test"/>
-		<logger level="INFO" doc:name="Logger" doc:id="abc29e33-30d3-4013-bb8a-4808dcef261c" message="Deploying to Cloudhub"/>
-		<ee:transform doc:name="Transform Message" doc:id="80b8031d-0c8a-41be-8690-57f8338292f5" >
+	<flow name="ch2-demo-apiFlow" doc:id="89225e5e-ad87-4456-8e26-bccb3b9c30fb" >
+		<http:listener doc:name="Listener" doc:id="b20c1700-6dcd-4cf2-a112-47fb1d39e0ca" config-ref="HTTP_Listener_config" path="/test"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c367ae13-dc2e-4f4f-8642-5c91743de98d" message="DEPLOYING on CH2.0"/>
+		<ee:transform doc:name="Transform Message" doc:id="bab793e0-d34c-43ea-9a6d-0c2c51785e68" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	"STATUS" : "Deployment successful!!"
+	"Message":"DEPLOYMENT SUCCESSFULL!!!!"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
