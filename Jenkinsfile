@@ -15,6 +15,8 @@ pipeline {
         stage('Build') {
             steps {
                 bat 'mvn clean package'
+                
+				archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
@@ -39,7 +41,7 @@ pipeline {
 
                     configFileProvider([
                         configFile(
-                            fileId: 'fef1301f-3e16-45f4-90aa-25a0b3aebf0b',
+                            fileId: 'mulesoft-settings',
                             variable: 'MAVEN_SETTINGS'
                         )
                     ]) {
@@ -50,6 +52,23 @@ pipeline {
                 }
             }
         }
+        
+        
+        post {
+
+	        success {
+	            echo 'Deployment Successful'
+	        }
+	
+	        failure {
+	            echo 'Deployment Failed'
+	        }
+	
+	        always {
+	            cleanWs()
+	        }
+	
+	    }
 
     }
 
