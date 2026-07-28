@@ -37,7 +37,7 @@ pipeline {
 
                     configFileProvider([
                         configFile(
-                            fileId: 'mulesoft-settings',
+                            fileId: 'Mulesoft Settings',
                             variable: 'MAVEN_SETTINGS'
                         )
                     ]) {
