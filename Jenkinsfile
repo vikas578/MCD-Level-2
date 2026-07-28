@@ -10,21 +10,29 @@ pipeline {
       }
     }
 
-    stage('Build and Deploy') {
+
+	stage('Build') {
+	    steps {
+	        bat 'mvn clean package'
+	    }
+	}
+
+
+    stage('Deploy') {
       steps {
 
         withCredentials([
-          string(credentialsId: 'ANYPOINT_CONNECTED_APP_USER',
+          string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
             variable: 'ANYPOINT_CONNECTED_APP_USER'),
 
-          string(credentialsId: 'ANYPOINT_CONNECTED_APP_PASSWORD',
+          string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
             variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
 
-          string(credentialsId: 'ANYPOINT_USERNAME',
+          string(credentialsId: 'ANYPOINT.USERNAME',
             variable: 'ANYPOINT_USERNAME'),
 
-          string(credentialsId: 'ANYPOINT_PASSWORD',
-            variable: 'ANYPOINT_PASSWORD'),
+          string(credentialsId: 'ANYPOINT.PASSWORD',
+            variable: 'ANYPOINT_PASSWORD')
 
         ]) {
 
@@ -33,11 +41,7 @@ pipeline {
               variable: 'MAVEN_SETTINGS')
           ]) {
 
-            bat ""
-            "
-            mvn - s "%MAVEN_SETTINGS%"
-            clean deploy - DmuleDeploy ""
-            "
+            bat "mvn -s \"%MAVEN_SETTINGS%\" clean deploy -DmuleDeploy"
 
           }
         }
