@@ -6,9 +6,7 @@ pipeline {
 
     stage('Checkout') {
       steps {
-        git branch: 'main',
-          credentialsId: 'vikas578',
-          url: 'https://github.com/vikas578/MCD-Level-2.git'
+        checkout scm
       }
     }
 
