@@ -16,7 +16,7 @@ pipeline {
             steps {
                 bat 'mvn clean package'
                 
-				archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
@@ -48,13 +48,13 @@ pipeline {
 
                         bat 'mvn -s "%MAVEN_SETTINGS%" deploy -DmuleDeploy'
 
-                    }
-                }
+                    	}
+                	}
             }
         }
-        
-        
-        post {
+
+		
+		post {
 
 	        success {
 	            echo 'Deployment Successful'
