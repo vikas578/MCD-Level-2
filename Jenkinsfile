@@ -54,8 +54,9 @@ pipeline {
                         )
                     ]){
 
-                       bat "mvn -s \"${env.MAVEN_SETTINGS}\" deploy -DmuleDeploy -Denv=${params.ENV}"
+                      	//bat "mvn -s \"${env.MAVEN_SETTINGS}\" deploy -DmuleDeploy -Denv=${params.ENV}"
 
+						bat "mvn -s \"${env.MAVEN_SETTINGS}\" mule:deploy -Denv=${params.ENV}"	
                     }
             	}
             }
