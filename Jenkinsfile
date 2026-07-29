@@ -1,164 +1,206 @@
-	pipeline {
-	
-	    agent any
-	    
-	     options {
-		    skipDefaultCheckout(true)
-		}
-	    
-	    
-	    parameters {
-		    choice(
-		        name: 'ENV',
-		        choices: ['dev', 'qa', 'prod'],
-		        description: 'Select properties file'
-		    )
-		}
-	
-	
-	    stages {
-	    	
-	    	stage('Checkout') {
-			    steps {
-			        cleanWs()
-			        checkout scm
-			    }
-			}
-	
-	        
-	        stage('Generate Version') {
-			    steps {
-			        script {
-			
-						def baseVersion = bat(
-						    script: '@mvn help:evaluate -Dexpression=revision -q -DforceStdout',
-						    returnStdout: true
-						).trim().readLines().last()
-			
-			            if (!baseVersion || baseVersion.contains("null")) {
-			                error "revision is not defined correctly in pom.xml"
-			            }
-			
-			            def parts = baseVersion.tokenize('.')
-			            
-			            if (parts.size() < 2) {
-						    error "Invalid revision format in pom.xml. Expected format: Major.Minor.Patch"
-						}
-			
-			            env.APP_VERSION = "${parts[0]}.${parts[1]}.${env.BUILD_NUMBER}"
-			
-			            echo "==========================================="
-			            echo "Base Version : ${baseVersion}"
-			            echo "Build Number : ${env.BUILD_NUMBER}"
-			            echo "App Version  : ${env.APP_VERSION}"
-			            echo "==========================================="
-			        }
-			    }
-			}
-	
-	
-	        
-	        
-	        stage('Build') {
-	            steps {
-	                bat """
-					mvn clean package ^
-					-Drevision=${env.APP_VERSION} ^
-					-Denv=${params.ENV}
-					"""
-	            }
-	
-	            post {
-	                success {
-	                    archiveArtifacts artifacts: 'target/*.jar'
-	                }
-	            }
-	        }
-	        
-	        
-	        
-	        stage('Publish to Exchange') {
-			    steps {
-			
-			        withCredentials([
-			            string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
-			                   variable: 'ANYPOINT_CONNECTED_APP_USER'),
-			            string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
-			                   variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
-			            string(credentialsId: 'ANYPOINT.USERNAME',
-			                   variable: 'ANYPOINT_USERNAME'),
-			            string(credentialsId: 'ANYPOINT.PASSWORD',
-			                   variable: 'ANYPOINT_PASSWORD')
-			        ]) {
-			
-			            configFileProvider([
-			                configFile(
-			                    fileId: 'mulesoft-settings',
-			                    variable: 'MAVEN_SETTINGS'
-			                )
-			            ]) {
-			
-			                bat """
-			                mvn -s "${env.MAVEN_SETTINGS}" clean deploy ^
-			                -DskipMuleDeploy=true ^
-			                -Drevision=${env.APP_VERSION} ^
-			                -Denv=${params.ENV}
-			                """
-			
-			            }
-			        }
-			    }
-			}
+pipeline {
 
-	
-	        stage('Deploy to Cloudhub 2.0') {
-	            steps {
-	
-	                withCredentials([
-	                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
-	                           variable: 'ANYPOINT_CONNECTED_APP_USER'),
-	                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
-	                           variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
-	                    string(credentialsId: 'ANYPOINT.USERNAME',
-	                           variable: 'ANYPOINT_USERNAME'),
-	                    string(credentialsId: 'ANYPOINT.PASSWORD',
-	                           variable: 'ANYPOINT_PASSWORD')
-	                ]) {
-	
-	                    configFileProvider([
-	                        configFile(
-	                            fileId: 'mulesoft-settings',
-	                            variable: 'MAVEN_SETTINGS'
-	                        )
-	                    ]){
-	
-	                      	bat """
-							mvn -s "${env.MAVEN_SETTINGS}" deploy ^
-							-DmuleDeploy ^
-							-Drevision=${env.APP_VERSION} ^
-							-Denv=${params.ENV}
-							"""
-	                    }
-	            	}
-	            }
-	        }
-	
-	    }   // <-- End of stages
-	
-	    post {
-	
-	        success {
-	            echo "Deployment to ${params.ENV} completed successfully."
-	        }
-	
-	        failure {
-	            echo "Deployment to ${params.ENV} failed."
-	        }
-	
-	        always {
-	            cleanWs()
-	        }
-	
-	    }
-	
-	}       // <-- End of pipeline
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+        timestamps()
+    }
+
+    parameters {
+        choice(
+            name: 'ENV',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select deployment environment'
+        )
+    }
+
+    environment {
+        BASE_VERSION = "1.0"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                cleanWs()
+                checkout scm
+            }
+        }
+
+        stage('Generate Version') {
+            steps {
+                script {
+
+                    def revision = bat(
+                        script: '@mvn help:evaluate -Dexpression=revision -q -DforceStdout',
+                        returnStdout: true
+                    ).trim().readLines().last()
+
+                    if (!revision) {
+                        error "Unable to determine revision from pom.xml"
+                    }
+
+                    def parts = revision.tokenize('.')
+
+                    if (parts.size() < 2) {
+                        error "Revision must be in Major.Minor.Patch format"
+                    }
+
+                    env.APP_VERSION = "${parts[0]}.${parts[1]}.${env.BUILD_NUMBER}"
+
+                    echo ""
+                    echo "========================================="
+                    echo "Base Revision : ${revision}"
+                    echo "Build Number  : ${env.BUILD_NUMBER}"
+                    echo "Artifact Ver  : ${env.APP_VERSION}"
+                    echo "Environment   : ${params.ENV}"
+                    echo "========================================="
+                    echo ""
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+
+                bat """
+                mvn clean package ^
+                -Drevision=${env.APP_VERSION} ^
+                -Denv=${params.ENV}
+                """
+
+                bat """
+                mvn help:evaluate ^
+                -Dexpression=project.version ^
+                -q ^
+                -DforceStdout ^
+                -Drevision=${env.APP_VERSION}
+                """
+
+            }
+
+            post {
+                success {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                }
+            }
+        }
+
+        stage('Publish to Exchange') {
+
+            steps {
+
+                withCredentials([
+
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+                           variable: 'ANYPOINT_CONNECTED_APP_USER'),
+
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+                           variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
+
+                    string(credentialsId: 'ANYPOINT.USERNAME',
+                           variable: 'ANYPOINT_USERNAME'),
+
+                    string(credentialsId: 'ANYPOINT.PASSWORD',
+                           variable: 'ANYPOINT_PASSWORD')
+
+                ]) {
+
+                    configFileProvider([
+
+                        configFile(
+                            fileId: 'mulesoft-settings',
+                            variable: 'MAVEN_SETTINGS'
+                        )
+
+                    ]) {
+
+                        bat """
+                        mvn deploy ^
+                        -s "${env.MAVEN_SETTINGS}" ^
+                        -DskipMuleDeploy=true ^
+                        -Drevision=${env.APP_VERSION}
+                        """
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage('Deploy to CloudHub 2.0') {
+
+            steps {
+
+                withCredentials([
+
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+                           variable: 'ANYPOINT_CONNECTED_APP_USER'),
+
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+                           variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
+
+                    string(credentialsId: 'ANYPOINT.USERNAME',
+                           variable: 'ANYPOINT_USERNAME'),
+
+                    string(credentialsId: 'ANYPOINT.PASSWORD',
+                           variable: 'ANYPOINT_PASSWORD')
+
+                ]) {
+
+                    configFileProvider([
+
+                        configFile(
+                            fileId: 'mulesoft-settings',
+                            variable: 'MAVEN_SETTINGS'
+                        )
+
+                    ]) {
+
+                        bat """
+                        mvn mule:deploy ^
+                        -s "${env.MAVEN_SETTINGS}" ^
+                        -Drevision=${env.APP_VERSION} ^
+                        -Denv=${params.ENV}
+                        """
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+    post {
+
+        success {
+            echo ""
+            echo "========================================="
+            echo "Deployment Successful"
+            echo "Version     : ${env.APP_VERSION}"
+            echo "Environment : ${params.ENV}"
+            echo "========================================="
+        }
+
+        failure {
+            echo ""
+            echo "========================================="
+            echo "Deployment Failed"
+            echo "Version     : ${env.APP_VERSION}"
+            echo "Environment : ${params.ENV}"
+            echo "========================================="
+        }
+
+        always {
+            cleanWs()
+        }
+
+    }
+
+}
