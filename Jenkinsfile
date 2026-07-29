@@ -30,10 +30,10 @@
 			    steps {
 			        script {
 			
-			            def baseVersion = bat(
-			                script: 'mvn help:evaluate -Dexpression=revision -q -DforceStdout',
-			                returnStdout: true
-			            ).trim()
+						def baseVersion = bat(
+						    script: '@mvn help:evaluate -Dexpression=revision -q -DforceStdout',
+						    returnStdout: true
+						).trim().readLines().last()
 			
 			            if (!baseVersion || baseVersion.contains("null")) {
 			                error "revision is not defined correctly in pom.xml"
