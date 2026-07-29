@@ -77,6 +77,39 @@
 	        
 	        
 	        
+	        stage('Publish to Exchange') {
+			    steps {
+			
+			        withCredentials([
+			            string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+			                   variable: 'ANYPOINT_CONNECTED_APP_USER'),
+			            string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+			                   variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
+			            string(credentialsId: 'ANYPOINT.USERNAME',
+			                   variable: 'ANYPOINT_USERNAME'),
+			            string(credentialsId: 'ANYPOINT.PASSWORD',
+			                   variable: 'ANYPOINT_PASSWORD')
+			        ]) {
+			
+			            configFileProvider([
+			                configFile(
+			                    fileId: 'mulesoft-settings',
+			                    variable: 'MAVEN_SETTINGS'
+			                )
+			            ]) {
+			
+			                bat """
+			                mvn -s "${env.MAVEN_SETTINGS}" clean deploy ^
+			                -DskipMuleDeploy=true ^
+			                -Drevision=${env.APP_VERSION} ^
+			                -Denv=${params.ENV}
+			                """
+			
+			            }
+			        }
+			    }
+			}
+
 	
 	        stage('Deploy to Cloudhub 2.0') {
 	            steps {
