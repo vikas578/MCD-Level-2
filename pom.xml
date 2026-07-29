@@ -4,7 +4,7 @@
 
 	<groupId>88e97e5d-808e-49c4-b8f2-8e8fbe47d471</groupId>
 	<artifactId>ch2-demo-api</artifactId>
-	<version>1.0.4</version>
+	<version>${revision}</version>
 	<packaging>mule-application</packaging>
 
 	<name>ch2-demo-api</name>
@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
+		<revision>1.0.0</revision>
 		<app.runtime>4.9.18</app.runtime>
 		<mule.maven.plugin.version>4.5.3</mule.maven.plugin.version>
 	</properties>
