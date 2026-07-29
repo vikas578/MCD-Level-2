@@ -42,9 +42,11 @@ pipeline {
                         )
                     ]) {
 
-                        bat "mvn -s \"%MAVEN_SETTINGS%\" deploy -DmuleDeploy  -Denv=${params.ENV}" 
-
-                    }
+	                script {
+	                    echo "Settings file = ${env.MAVEN_SETTINGS}"
+	
+	                    bat "mvn -s \"${env.MAVEN_SETTINGS}\" deploy -DmuleDeploy -Denv=${params.ENV}"
+	                }
                 }
             }
         }
