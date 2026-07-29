@@ -2,6 +2,11 @@ pipeline {
 
     agent any
     
+     options {
+	    skipDefaultCheckout(true)
+	}
+    
+    
     parameters {
 	    choice(
 	        name: 'ENV',
@@ -15,6 +20,7 @@ pipeline {
     	
     	stage('Checkout') {
 		    steps {
+		    	cleanWs()
 		        checkout scm
 		    }
 		}
@@ -22,13 +28,12 @@ pipeline {
         stage('Build') {
             steps {
 				bat "mvn clean package -Denv=${params.ENV}"
-				bat "mvn deploy -Denv=${params.ENV}"
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
 
-        stage('Deploy') {
+        stage('Deploy to CH2.0') {
             steps {
 
                 withCredentials([
@@ -47,12 +52,12 @@ pipeline {
                             fileId: 'mulesoft-settings',
                             variable: 'MAVEN_SETTINGS'
                         )
-                    ]) {
+                    ]){
 
-                        bat "mvn -s \"${env.MAVEN_SETTINGS}\" deploy -DmuleDeploy  -Denv=${params.ENV}" 
+                       bat "mvn -s \"${env.MAVEN_SETTINGS}\" deploy -DmuleDeploy -Denv=${params.ENV}"
 
                     }
-                }
+            	}
             }
         }
 
@@ -61,11 +66,11 @@ pipeline {
     post {
 
         success {
-            echo 'Deployment Successful'
+            echo "Deployment to ${params.ENV} completed successfully."
         }
 
         failure {
-            echo 'Deployment Failed'
+            echo "Deployment to ${params.ENV} failed."
         }
 
         always {
