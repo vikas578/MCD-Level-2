@@ -22,7 +22,7 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="57dd1579-c7ea-4a81-9a65-464694596cf6" message="=====================DEMO LOGGER================="/>
+		<logger level="INFO" doc:name="Logger" doc:id="57dd1579-c7ea-4a81-9a65-464694596cf6" message="=====================DEVIL LOGGER================="/>
 		<logger level="INFO" doc:name="Logger" doc:id="41467c69-aaec-494f-86b4-9972fcd231ef" message="${app.name} DEPLOYMENT COMPLETE on CH2.0 in ${env} Environment using JenkinsFile"/>
 	</flow>
 </mule>
