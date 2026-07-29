@@ -7,9 +7,11 @@ pipeline {
         stage('Build') {
             steps {
                 bat 'mvn clean package'
+                bat 'mvn deploy'
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
+
 
         stage('Deploy') {
             steps {
