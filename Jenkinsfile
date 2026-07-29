@@ -177,16 +177,26 @@ pipeline {
 
     }
 
+
+
     post {
 
-        success {
-            echo ""
-            echo "========================================="
-            echo "Deployment Successful"
-            echo "Version     : ${env.APP_VERSION}"
-            echo "Environment : ${params.ENV}"
-            echo "========================================="
-        }
+		success {
+		    echo '''
+		╔══════════════════════════════════════════════════════╗
+		║                                                      ║
+		║              M U L E S O F T   ✔                    ║
+		║                                                      ║
+		║         CloudHub 2.0 Deployment Successful           ║
+		║                                                      ║
+		╚══════════════════════════════════════════════════════╝
+		'''
+		    echo "Application : ch2-demo-api"
+		    echo "Version     : ${env.APP_VERSION}"
+		    echo "Environment : ${params.ENV}"
+		    echo "Build No.   : ${env.BUILD_NUMBER}"
+		    echo "Status      : SUCCESS"
+		}
 
         failure {
             echo ""
