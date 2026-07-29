@@ -1,13 +1,21 @@
 pipeline {
 
     agent any
+    
+    parameters {
+	    choice(
+	        name: 'ENV',
+	        choices: ['dev', 'qa', 'prod'],
+	        description: 'Select deployment environment'
+	    )
+	}
+
 
     stages {
 
         stage('Build') {
             steps {
-                bat 'mvn clean package'
-                bat 'mvn deploy'
+				bat "mvn clean package -Denv=${params.ENV}"
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
@@ -34,7 +42,7 @@ pipeline {
                         )
                     ]) {
 
-                        bat 'mvn -s "%MAVEN_SETTINGS%" deploy -DmuleDeploy'
+                        bat 'mvn -s "%MAVEN_SETTINGS%" deploy -DmuleDeploy  -Denv=${params.ENV}' 
 
                     }
                 }
