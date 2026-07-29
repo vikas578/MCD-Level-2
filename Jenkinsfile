@@ -28,6 +28,7 @@ pipeline {
         stage('Build') {
             steps {
 				bat "mvn clean package -Denv=${params.ENV}"
+				bat "mvn deploy -Denv=${params.ENV}"
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
