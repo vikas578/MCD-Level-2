@@ -4,7 +4,7 @@
 
 	<groupId>88e97e5d-808e-49c4-b8f2-8e8fbe47d471</groupId>
 	<artifactId>ch2-demo-api</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<packaging>mule-application</packaging>
 
 	<name>ch2-demo-api</name>
