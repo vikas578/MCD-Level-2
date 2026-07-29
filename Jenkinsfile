@@ -11,7 +11,7 @@ pipeline {
 	    choice(
 	        name: 'ENV',
 	        choices: ['dev', 'qa', 'prod'],
-	        description: 'Select deployment environment'
+	        description: 'Select properties file'
 	    )
 	}
 
@@ -20,15 +20,45 @@ pipeline {
     	
     	stage('Checkout') {
 		    steps {
-		    	cleanWs()
+		        cleanWs()
 		        checkout scm
 		    }
 		}
 
-        stage('Build') {
+
+		stage('Verify Git Revision') {
             steps {
-				bat "mvn clean package -Denv=${params.ENV}"
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                bat 'git log -1 --oneline'
+            }
+        }
+        
+        
+        stage('Build & Publish to Exchange') {
+            steps {
+
+                withCredentials([
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+                           variable: 'ANYPOINT_CONNECTED_APP_USER'),
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+                           variable: 'ANYPOINT_CONNECTED_APP_PASSWORD')
+                ]) {
+
+                    configFileProvider([
+                        configFile(
+                            fileId: 'mulesoft-settings',
+                            variable: 'MAVEN_SETTINGS'
+                        )
+                    ]) {
+
+                        bat """
+                        mvn -B ^
+                        -s "%MAVEN_SETTINGS%" ^
+                        clean deploy ^
+                        -Denv=${params.ENV}
+                        """
+
+                    }
+                }
             }
         }
 
