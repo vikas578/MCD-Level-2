@@ -42,6 +42,7 @@
 						<vCores>1</vCores>
 						<properties>
 							<http.port>8081</http.port>
+							<env>${env}</env>
 						</properties>
 						<secureProperties>
 							<https.port>8082</https.port>
