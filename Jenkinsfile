@@ -83,14 +83,14 @@ pipeline {
 		                Production: ['prod']
 		            ]
 		
-		            if (!validCombinations[params.ANYPOINT_ENV].contains(params.ENV)) {
+		            if (!validCombinations[params.ANYPOINT_ENV].contains(params.CONFIG_ENV)) {
 		
 		                error """
 		=====================================================
 		
 		Invalid Parameter Selection
 		
-		Application Properties : ${params.ENV}
+		Application Properties : ${params.CONFIG_ENV}
 		Anypoint Environment   : ${params.ANYPOINT_ENV}
 		
 		Allowed combinations:
@@ -108,7 +108,7 @@ pipeline {
 		=====================================================
 		Parameter Validation Successful
 		
-		Application Properties : ${params.ENV}
+		Application Properties : ${params.CONFIG_ENV}
 		Anypoint Environment   : ${params.ANYPOINT_ENV}
 		
 		=====================================================
@@ -254,7 +254,7 @@ pipeline {
 		'''
 		    echo "Application : ch2-demo-api"
 		    echo "Version     : ${env.APP_VERSION}"
-		    echo "Environment : ${params.ENV}"
+		    echo "Environment : ${params.CONFIG_ENV}"
 		    echo "Build No.   : ${env.BUILD_NUMBER}"
 		    echo "Status      : SUCCESS"
 		}
@@ -264,7 +264,7 @@ pipeline {
             echo "========================================="
             echo "Deployment Failed"
             echo "Version     : ${env.APP_VERSION}"
-            echo "Environment : ${params.ENV}"
+            echo "Environment : ${params.CONFIG_ENV}"
             echo "========================================="
         }
 
