@@ -12,6 +12,12 @@ pipeline {
 
 
     stages {
+    	
+    	stage('Checkout') {
+		    steps {
+		        checkout scm
+		    }
+		}
 
         stage('Build') {
             steps {
@@ -42,7 +48,7 @@ pipeline {
                         )
                     ]) {
 
-                        bat "mvn -s \"%MAVEN_SETTINGS%\" deploy -DmuleDeploy  -Denv=${params.ENV}" 
+                        bat "mvn -s \"${env.MAVEN_SETTINGS}\" deploy -DmuleDeploy  -Denv=${params.ENV}" 
 
                     }
                 }
