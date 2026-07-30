@@ -9,20 +9,39 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<http:listener-connection host="0.0.0.0" port="${http.port}" />
 	</http:listener-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="53902722-5ed0-491c-bdcf-8fff57a0604b" file="config/${env}.properties" />
+	<flow name="add-user-apiFlow" doc:id="54c0ab32-cd00-4637-8ab1-e5134f7063bf" >
+		<http:request doc:name="Request" doc:id="f7c03dbc-97d4-4b35-b44a-dd6e9eea3b5c" method="POST" url="https://dummyjson.com/users/add" target="addUserResponse"/>
+	</flow>
+	<flow name="get-users-Flow" doc:id="132e6b77-f714-46f4-bdad-d74b75004dc2">
+		<http:request doc:name="UsersRequest" doc:id="601c3532-e668-4e12-8db0-b7ce0fc19c7a" url="https://dummyjson.com/users" />
+	</flow>
+	<flow name="status-apiFlow" doc:id="93f3e3e8-9c89-4e7a-883b-15b7ca31ff48" >
+		<http:request doc:name="StatusRequest" doc:id="d1cf48bd-7505-462a-bb67-7019577bf45b" url="https://httpbin.org/status/{Codes}">
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"Codes" : vars.statusCode
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
 	<flow name="ch2-demo-apiFlow" doc:id="89225e5e-ad87-4456-8e26-bccb3b9c30fb" >
 		<http:listener doc:name="Listener" doc:id="b20c1700-6dcd-4cf2-a112-47fb1d39e0ca" config-ref="HTTP_Listener_config" path="/test"/>
-		<logger level="INFO" doc:name="Logger" doc:id="c367ae13-dc2e-4f4f-8642-5c91743de98d" message="${app.name} DEPLOYING on CH2.0 in ${env} Environment"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c367ae13-dc2e-4f4f-8642-5c91743de98d" message="${app.name} MUNIT  TEST on CH2.0 in ${env} Environment using Jenkins Pipeline"/>
+		<set-variable value="#[attributes.queryParams.status]" doc:name="Set Variable" doc:id="19665510-5bcc-4ca2-b99e-2c67acd3002d" variableName="statusCode"/>
+		<flow-ref doc:name="add-user-apiFlow" doc:id="b1776b71-3cdc-4eb3-a019-28a640525455" name="add-user-apiFlow"/>
+		<flow-ref doc:name="status-apiFlow" doc:id="5f44a96f-7142-4bee-9ecd-52c00589552c" name="status-apiFlow"/>
+		<flow-ref doc:name="get-users-Flow" doc:id="c5d61fba-0406-46be-8937-38949162a5f9" name="get-users-Flow" target="getUser"/>
 		<ee:transform doc:name="Transform Message" doc:id="bab793e0-d34c-43ea-9a6d-0c2c51785e68" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	"Message":"DEPLOYMENT SUCCESSFULL  in " ++ p('env') ++  " Environment!!!!"
+	"addUser" : vars.addUserResponse,
+	"getUser" : vars.getUser
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="57dd1579-c7ea-4a81-9a65-464694596cf6" message="=====================BRING THE ACTION LOGGER================="/>
 		<logger level="INFO" doc:name="Logger" doc:id="41467c69-aaec-494f-86b4-9972fcd231ef" message="${app.name} DEPLOYMENT COMPLETE on CH2.0 in ${env} Environment using JenkinsFile"/>
 	</flow>
 </mule>

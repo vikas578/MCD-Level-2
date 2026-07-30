@@ -5,10 +5,13 @@ pipeline {
     options {
         skipDefaultCheckout(true)
         timestamps()
+        disableConcurrentBuilds()
     }
 
 
     parameters {
+    
+    	
         choice(
             name: 'CONFIG_ENV',
             choices: ['dev', 'qa', 'prod'],
@@ -24,7 +27,7 @@ pipeline {
 
 
     environment {
-        BASE_VERSION = "1.0"
+        GITHUB_OWNER = 'vikas578'
     }
 
 
