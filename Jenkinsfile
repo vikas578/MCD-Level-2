@@ -60,6 +60,8 @@ pipeline {
                     }
 
                     env.APP_VERSION = "${parts[0]}.${parts[1]}.${env.BUILD_NUMBER}"
+                    
+                    currentBuild.displayName = "v${env.APP_VERSION} | ${params.CONFIG_ENV.toUpperCase()} | #${env.BUILD_NUMBER}"
 
                     echo ""
                     echo "========================================="
