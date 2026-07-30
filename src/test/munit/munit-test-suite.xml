@@ -33,6 +33,31 @@
 			<munit-tools:assert-that doc:name="Assert that Payload is adding User" doc:id="5acb4317-32d3-459d-a055-19ac99f086eb" expression="#[payload.addUser.id]" is="#[MunitTools::equalTo(209)]" message="User is not added properly"/>
 		</munit:validation>
 	</munit:test>
+	<munit:test name="munit-test-failure-path" doc:id="151709a4-de97-4d56-81b5-d3021516118b" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="4209024f-ea59-4637-8cd0-10f6ac9d7d47" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f7c03dbc-97d4-4b35-b44a-dd6e9eea3b5c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="addUserResponse" value="#[output application/json --- read(MunitTools::getResourceAsString('post-user-response.json'), 'application/json')]" mediaType="application/json" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Payload and QueryParam" doc:id="d234d97f-284e-4a3f-b0b1-45bad7b78711" >
+				<munit:payload value="#[output application/json --- read(MunitTools::getResourceAsString('post-user-request.json'), 'application/json')]" />
+				<munit:attributes value="#[{queryParams : {status:400}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="ch2-demo-apiFlow" doc:id="ada96653-1740-4f17-8ee6-7b31d90ec8e2" name="ch2-demo-apiFlow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that Payload is NOT NULL" doc:id="7c5a4801-8537-4a49-8917-df2a8523e9cd" message="Payload is Null" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+			<munit-tools:assert-that doc:name="Assert that Payload is adding User" doc:id="ad161463-f765-4438-b137-6437ba46af9d" message="User is not added properly" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+		</munit:validation>
+	</munit:test>
 
 
 </mule>

@@ -125,11 +125,11 @@ pipeline {
 		
 
 
-        stage('Build') {
+        stage('Build and Test') {
             steps {
 
                 bat """
-                mvn clean package ^
+                mvn clean verify ^
                 -Drevision=${env.APP_VERSION} ^
                 -Denv=${params.CONFIG_ENV}
                 """
@@ -148,8 +148,26 @@ pipeline {
                 success {
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
+                
+                always {
+
+     			  	junit allowEmptyResults: true,
+              		testResults: '**/target/surefire-reports/*.xml'
+              		
+              		publishHTML([
+		                allowMissing: true,
+		                alwaysLinkToLastBuild: true,
+		                keepAll: true,
+		                reportDir: 'target/site/munit/coverage',
+		                reportFiles: 'index.html',
+		                reportName: 'MUnit Coverage Report'
+		            ])
+
+    			}	
             }
         }
+
+
 
         stage('Publish to Exchange') {
 
