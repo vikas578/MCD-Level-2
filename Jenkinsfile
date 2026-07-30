@@ -161,7 +161,7 @@ pipeline {
 		                alwaysLinkToLastBuild: true,
 		                keepAll: true,
 		                reportDir: 'target/site/munit/coverage',
-		                reportFiles: 'index.html',
+		                reportFiles: 'summary.html',
 		                reportName: 'MUnit Coverage Report'
 		            ])
 
