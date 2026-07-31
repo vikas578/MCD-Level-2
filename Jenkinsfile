@@ -130,23 +130,34 @@ pipeline {
 		
 
         stage('Build') {
+		
 		    steps {
-						bat """
-		                mvn clean package ^
-		                -s "${env.MAVEN_SETTINGS}" ^
-		                -Drevision=${env.APP_VERSION} ^
-		                -Denv=${params.CONFIG_ENV} ^
-		                -DskipTests
-		                """
-		           }   		
-		        
+		
+		        configFileProvider([
+		            configFile(
+		                fileId: 'mulesoft-settings',
+		                variable: 'MAVEN_SETTINGS'
+		            )
+		        ]) {
+		
+		            bat """
+		            mvn clean package ^
+		            -s "${MAVEN_SETTINGS}" ^
+		            -Drevision=${env.APP_VERSION} ^
+		            -Denv=${params.CONFIG_ENV} ^
+		            -DskipTests
+		            """
+		
+		        }
+		
+		    }
+		
 		    post {
 		        success {
 		            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-		        	}
-		    	}
+		        }
+		    }
 		}
-
 
         stage('Publish to Exchange') {
 
