@@ -1,0 +1,137 @@
+pipeline {
+
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        GITHUB_OWNER = 'vikas578'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                cleanWs()
+                checkout scm
+            }
+        }
+
+        stage('Generate Version') {
+            steps {
+                script {
+
+                    def revision = bat(
+                        script: '@mvn help:evaluate -Dexpression=revision -q -DforceStdout',
+                        returnStdout: true
+                    ).trim().readLines().last()
+
+                    if (!revision) {
+                        error "Unable to determine revision from pom.xml"
+                    }
+
+                    def parts = revision.tokenize('.')
+
+                    if (parts.size() < 2) {
+                        error "Revision must be in Major.Minor.Patch format"
+                    }
+
+                    env.APP_VERSION = "${parts[0]}.${parts[1]}.${env.BUILD_NUMBER}"
+
+                    currentBuild.displayName = "v${env.APP_VERSION} | Build #${env.BUILD_NUMBER}"
+
+                    echo ""
+                    echo "========================================="
+                    echo "Base Revision : ${revision}"
+                    echo "Build Number  : ${env.BUILD_NUMBER}"
+                    echo "Artifact Ver  : ${env.APP_VERSION}"
+                    echo "========================================="
+                    echo ""
+                }
+            }
+        }
+
+        stage('Build & Publish') {
+            steps {
+
+                withCredentials([
+
+                    string(
+                        credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+                        variable: 'ANYPOINT_CONNECTED_APP_USER'
+                    ),
+
+                    string(
+                        credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+                        variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'
+                    ),
+
+                    string(
+                        credentialsId: 'ANYPOINT.USERNAME',
+                        variable: 'ANYPOINT_USERNAME'
+                    ),
+
+                    string(
+                        credentialsId: 'ANYPOINT.PASSWORD',
+                        variable: 'ANYPOINT_PASSWORD'
+                    )
+
+                ]) {
+
+                    configFileProvider([
+
+                        configFile(
+                            fileId: 'mulesoft-settings',
+                            variable: 'MAVEN_SETTINGS'
+                        )
+
+                    ]) {
+
+                        bat """
+                            mvn clean deploy ^
+                            -s "${MAVEN_SETTINGS}" ^
+                            -Drevision=${env.APP_VERSION} ^
+                            -DskipTests
+                        """
+
+                    }
+                }
+            }
+
+            post {
+                success {
+                    archiveArtifacts(
+                        artifacts: 'target/*.jar',
+                        fingerprint: true
+                    )
+                }
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo ""
+            echo "========================================="
+            echo "CI Pipeline Completed Successfully"
+            echo "Artifact Version : ${env.APP_VERSION}"
+            echo "========================================="
+        }
+
+        failure {
+            echo ""
+            echo "========================================="
+            echo "CI Pipeline Failed"
+            echo "========================================="
+        }
+
+        always {
+            cleanWs()
+        }
+    }
+}

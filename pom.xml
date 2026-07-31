@@ -37,7 +37,7 @@
 						<target>Cloudhub-US-East-2</target>
 						<muleVersion>${app.runtime}</muleVersion>
 						<server>anypoint-connected-apps</server>
-						<applicationName>ch2-demo-api</applicationName>
+						<applicationName>${applicationName}</applicationName>
 						<replicas>1</replicas>
 						<vCores>1</vCores>
 						<properties>
@@ -50,7 +50,6 @@
 					</cloudhub2Deployment>
 				</configuration>
 			</plugin>
-			
 		</plugins>
 	</build>
 

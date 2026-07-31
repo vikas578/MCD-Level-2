@@ -1,0 +1,221 @@
+pipeline {
+
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+
+    parameters {
+    
+    	
+        choice(
+            name: 'CONFIG_ENV',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select Deployment Configuration'
+        )
+        
+        choice(
+	        name: 'ANYPOINT_ENV',
+	        choices: ['Sandbox', 'Design', 'Production'],
+	        description: 'Select Anypoint Environment'
+	    )
+		
+		string(
+		    name: 'APP_VERSION',
+		    defaultValue: '',
+		    description: 'Artifact Version available in Exchange'
+		)
+		
+		string(
+		    name: 'APPLICATION_NAME',
+		    defaultValue: 'ch2-demo-api',
+		    description: 'Application Name'
+		)
+    }
+
+
+
+
+    stages {
+
+
+		stage('Validate Parameters') {
+		
+		    steps {
+		
+		        script {
+		
+		            def validCombinations = [
+		                Sandbox   : ['dev', 'qa'],
+		                Design    : ['dev', 'qa'],
+		                Production: ['prod']
+		            ]
+					
+					
+					if (!params.APP_VERSION?.trim()) {
+					    error "APP_VERSION is mandatory."
+					}
+					
+					
+					
+					if (!params.APPLICATION_NAME?.trim()) {
+					    error "APPLICATION_NAME is mandatory."
+					}
+					
+					
+		            if (!validCombinations[params.ANYPOINT_ENV].contains(params.CONFIG_ENV)) {
+		
+		                error """
+		=====================================================
+		
+		Invalid Parameter Selection
+		
+		Application Properties : ${params.CONFIG_ENV}
+		Anypoint Environment   : ${params.ANYPOINT_ENV}
+		
+		Allowed combinations:
+		
+		Sandbox    -> dev, qa
+		Design     -> dev, qa
+		Production -> prod
+		
+		=====================================================
+		"""
+		
+		            }
+		
+		            echo """
+		=====================================================
+		Parameter Validation Successful
+		
+		Application Properties : ${params.CONFIG_ENV}
+		Anypoint Environment   : ${params.ANYPOINT_ENV}
+		
+		=====================================================
+		"""
+		
+		        }
+		
+		    }
+		
+		}
+		
+
+
+		stage('Checkout') {
+		    steps {
+		        cleanWs()
+		        checkout scm
+		    }
+		}
+
+
+
+
+		stage('Deployment Summary') {
+		    steps {
+		        echo """
+		=========================================
+		Application : ${params.APPLICATION_NAME}
+		Version     : ${params.APP_VERSION}
+		Environment : ${params.ANYPOINT_ENV}
+		Properties  : ${params.CONFIG_ENV}
+		=========================================
+		"""
+		    }
+		}
+
+
+
+
+        stage('Deploy to CloudHub 2.0') {
+
+            steps {
+
+                withCredentials([
+
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+                           variable: 'ANYPOINT_CONNECTED_APP_USER'),
+
+                    string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+                           variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
+
+                    string(credentialsId: 'ANYPOINT.USERNAME',
+                           variable: 'ANYPOINT_USERNAME'),
+
+                    string(credentialsId: 'ANYPOINT.PASSWORD',
+                           variable: 'ANYPOINT_PASSWORD')
+
+                ]) {
+
+                    configFileProvider([
+
+                        configFile(
+                            fileId: 'mulesoft-settings',
+                            variable: 'MAVEN_SETTINGS'
+                        )
+
+                    ]) {
+
+                        bat """
+                        mvn mule:deploy ^
+						-s "${MAVEN_SETTINGS}" ^
+						-DapplicationName=${params.APPLICATION_NAME} ^
+						-Drevision=${params.APP_VERSION} ^
+						-Denv=${params.CONFIG_ENV} ^
+						-Danypoint.environment=${params.ANYPOINT_ENV}
+						"""
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+
+    post {
+
+		success {
+		    echo '''
+		╔══════════════════════════════════════════════════════╗
+		║                                                      ║
+		║              M U L E S O F T   ✔                    ║
+		║                                                      ║
+		║         CloudHub 2.0 Deployment Successful           ║
+		║                                                      ║
+		╚══════════════════════════════════════════════════════╝
+		'''
+		    echo "Application : ${params.APPLICATION_NAME}"
+		    echo "Version     : ${params.APP_VERSION}"
+		    echo "Environment : ${params.ANYPOINT_ENV}"
+		    echo "Properties : ${params.CONFIG_ENV}"
+		    echo "Status      : SUCCESS"
+		}
+
+        failure {
+		    echo ""
+		    echo "========================================="
+		    echo "Deployment Failed"
+		    echo "Application : ${params.APPLICATION_NAME}"
+		    echo "Version     : ${params.APP_VERSION}"
+		    echo "Environment : ${params.ANYPOINT_ENV}"
+		    echo "Properties  : ${params.CONFIG_ENV}"
+		    echo "========================================="
+		}
+		
+        always {
+            cleanWs()
+        }
+
+    }
+
+}
