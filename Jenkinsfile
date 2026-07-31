@@ -132,7 +132,7 @@ pipeline {
         stage('Build') {
 		    steps {
 						bat """
-		                mvn clean deploy ^
+		                mvn clean package ^
 		                -s "${env.MAVEN_SETTINGS}" ^
 		                -Drevision=${env.APP_VERSION} ^
 		                -Denv=${params.CONFIG_ENV} ^
