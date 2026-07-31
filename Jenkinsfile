@@ -126,6 +126,42 @@ pipeline {
 		}
 		
 		
+		
+		stage('Maven Debug') {
+		    steps {
+		        withCredentials([
+		            string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+		                   variable: 'ANYPOINT_CONNECTED_APP_USER'),
+		            string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+		                   variable: 'ANYPOINT_CONNECTED_APP_PASSWORD')
+		        ]) {
+		
+		            configFileProvider([
+		                configFile(
+		                    fileId: 'mulesoft-settings',
+		                    variable: 'MAVEN_SETTINGS'
+		                )
+		            ]) {
+		
+		                bat """
+		                mvn help:evaluate ^
+		                -s "${env.MAVEN_SETTINGS}" ^
+		                -Dexpression=settings.localRepository ^
+		                -q ^
+		                -DforceStdout
+		                """
+		
+		                bat """
+		                mvn help:effective-settings ^
+		                -s "${env.MAVEN_SETTINGS}"
+		                """
+		            }
+		        }
+		    }
+		}
+
+
+		
 
         stage('Build and Test') {
 		    steps {
