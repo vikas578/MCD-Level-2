@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<revision>1.0.0</revision>
-		<app.runtime>4.4.0</app.runtime>
+		<app.runtime>4.9.18</app.runtime>
 		<mule.maven.plugin.version>4.5.3</mule.maven.plugin.version>
 		<munit.version>3.7.1</munit.version>
 	</properties>
@@ -66,7 +66,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<runtimeVersion>4.4.0</runtimeVersion>
+					<runtimeVersion>4.9.18</runtimeVersion>
 					<coverage>
 						<runCoverage>true</runCoverage>
 						<formats>
