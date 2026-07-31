@@ -125,7 +125,11 @@ pipeline {
 		
 		}
 		
-
+		stage('Debug Maven') {
+		    steps {
+		        bat 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout'
+		    }
+		}
 
         stage('Build and Test') {
             steps {
