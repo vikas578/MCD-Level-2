@@ -128,9 +128,10 @@ pipeline {
 		
 
         stage('Build and Test') {
-            steps {
-
-               withCredentials([
+		    steps {
+		
+		        withCredentials([
+		
 		            string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
 		                   variable: 'ANYPOINT_CONNECTED_APP_USER'),
 		
@@ -142,13 +143,16 @@ pipeline {
 		
 		            string(credentialsId: 'ANYPOINT.PASSWORD',
 		                   variable: 'ANYPOINT_PASSWORD')
+		
 		        ]) {
 		
 		            configFileProvider([
+		
 		                configFile(
 		                    fileId: 'mulesoft-settings',
 		                    variable: 'MAVEN_SETTINGS'
 		                )
+		
 		            ]) {
 		
 		                bat """
@@ -158,21 +162,31 @@ pipeline {
 		                -Denv=${params.CONFIG_ENV}
 		                """
 		
-		            }
-
-            }
-
-            post {
-                success {
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                }
-                
-                always {
-
-     			  	junit allowEmptyResults: true,
-              		testResults: '**/target/surefire-reports/*.xml'
-              		
-              		publishHTML([
+		                bat """
+		                mvn help:evaluate ^
+		                -s "${env.MAVEN_SETTINGS}" ^
+		                -Dexpression=project.version ^
+		                -q ^
+		                -DforceStdout ^
+		                -Drevision=${env.APP_VERSION}
+		                """
+		
+		            }   // configFileProvider
+		
+		        }   // withCredentials
+		
+		    }   // steps
+		
+		    post {
+		        success {
+		            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+		        }
+		
+		        always {
+		            junit allowEmptyResults: true,
+		                  testResults: '**/target/surefire-reports/*.xml'
+		
+		            publishHTML([
 		                allowMissing: true,
 		                alwaysLinkToLastBuild: true,
 		                keepAll: true,
@@ -180,11 +194,9 @@ pipeline {
 		                reportFiles: 'summary.html',
 		                reportName: 'MUnit Coverage Report'
 		            ])
-
-    			}	
-            }
-        }
-
+		        }
+		    }
+		}
 
 
         stage('Publish to Exchange') {
