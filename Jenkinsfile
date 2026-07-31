@@ -125,28 +125,40 @@ pipeline {
 		
 		}
 		
-		stage('Debug Maven') {
-		    steps {
-		        bat 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout'
-		    }
-		}
+		
 
         stage('Build and Test') {
             steps {
 
-                bat """
-                mvn clean verify ^
-                -Drevision=${env.APP_VERSION} ^
-                -Denv=${params.CONFIG_ENV}
-                """
-
-                bat """
-                mvn help:evaluate ^
-                -Dexpression=project.version ^
-                -q ^
-                -DforceStdout ^
-                -Drevision=${env.APP_VERSION}
-                """
+               withCredentials([
+		            string(credentialsId: 'ANYPOINT.CONNECTED.APP.USER',
+		                   variable: 'ANYPOINT_CONNECTED_APP_USER'),
+		
+		            string(credentialsId: 'ANYPOINT.CONNECTED.APP.PASSWORD',
+		                   variable: 'ANYPOINT_CONNECTED_APP_PASSWORD'),
+		
+		            string(credentialsId: 'ANYPOINT.USERNAME',
+		                   variable: 'ANYPOINT_USERNAME'),
+		
+		            string(credentialsId: 'ANYPOINT.PASSWORD',
+		                   variable: 'ANYPOINT_PASSWORD')
+		        ]) {
+		
+		            configFileProvider([
+		                configFile(
+		                    fileId: 'mulesoft-settings',
+		                    variable: 'MAVEN_SETTINGS'
+		                )
+		            ]) {
+		
+		                bat """
+		                mvn clean verify ^
+		                -s "${env.MAVEN_SETTINGS}" ^
+		                -Drevision=${env.APP_VERSION} ^
+		                -Denv=${params.CONFIG_ENV}
+		                """
+		
+		            }
 
             }
 
